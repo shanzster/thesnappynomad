@@ -1550,9 +1550,8 @@ a {
 }
 
 .kitcard__tote-img {
-  width: 190px;
+  width: 240px;
   height: auto;
-  filter: drop-shadow(0 14px 16px rgba(23, 26, 43, 0.25));
 }
 
 .kitcard__name {
@@ -2713,8 +2712,8 @@ a {
 /* ---------------- Socials ---------------- */
 
 .sociallinks {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  display: flex;
+  justify-content: center;
   gap: 22px;
   max-width: 920px;
   margin-inline: auto;
@@ -2727,10 +2726,11 @@ a {
   gap: 4px;
   background: var(--white);
   border-radius: 18px;
-  padding: 26px 18px;
+  padding: 26px 40px;
   text-decoration: none;
   box-shadow: 0 12px 24px -16px rgba(23, 26, 43, 0.35);
   transition: transform 180ms ease-out;
+  min-width: 220px;
 }
 
 .sociallink:hover {
@@ -2789,6 +2789,109 @@ a {
   background: rgba(23, 26, 43, 0.07);
   padding: 2px 6px;
   border-radius: 6px;
+}
+
+/* Instagram Framed Posts */
+.igfeed-framed {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.igpost {
+  background: var(--white);
+  border: 1px solid rgba(23, 26, 43, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px -12px rgba(23, 26, 43, 0.15);
+  transition: transform 180ms ease-out;
+}
+
+.igpost:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px -12px rgba(23, 26, 43, 0.25);
+}
+
+.igpost__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(23, 26, 43, 0.08);
+}
+
+.igpost__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.igpost__avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%) border-box;
+}
+
+.igpost__info {
+  flex: 1;
+}
+
+.igpost__username {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.igpost__image-link {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.igpost__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.igpost__caption {
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.igpost__caption-text {
+  color: rgba(23, 26, 43, 0.8);
+}
+
+.igpost__link {
+  display: block;
+  padding: 10px 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--blue);
+  text-decoration: none;
+  border-top: 1px solid rgba(23, 26, 43, 0.08);
+  font-weight: 500;
+  transition: background 180ms ease-out;
+}
+
+.igpost__link:hover {
+  background: rgba(23, 26, 43, 0.03);
 }
 
 /* ---------------- The App ---------------- */

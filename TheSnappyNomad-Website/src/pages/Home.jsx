@@ -397,6 +397,7 @@ const KITS = [
     save: 149,
     rot: '-1.2deg',
     emoji: '🏝️',
+    img: '/images/bundles/IslandHopperBundle-1.png',
   },
   {
     name: 'City Wanderer',
@@ -406,15 +407,17 @@ const KITS = [
     save: 129,
     rot: '0.8deg',
     emoji: '🛺',
+    img: '/images/bundles/CityWandererBundle.png',
   },
   {
     name: 'The Full Nomad',
     trip: 'the everything trip',
-    items: ['Canon EOS Rebel T6', 'Insta360', 'Instax Mini 11'],
+    items: ['Canon EOS Rebel T6', 'Insta360', 'Canon EOS M10'],
     price: 1299,
     save: 198,
     rot: '-0.8deg',
     emoji: '🌏',
+    img: '/images/bundles/TheFullNomadBundle.png',
   },
 ]
 
