@@ -74,6 +74,12 @@ html {
   scroll-behavior: smooth;
 }
 
+html {
+  /* decorative bleeds (hero video, dividers, marquee) must never cause
+     sideways scroll on touch devices */
+  overflow-x: clip;
+}
+
 body {
   margin: 0;
   /* the tilted checker dividers intentionally exceed the viewport */
@@ -1106,35 +1112,271 @@ a {
   color: rgba(243, 237, 222, 0.8);
 }
 
-/* prints sit flush on the bottom edge of the section — no margin below */
-.filmworld__prints {
+/* ---- the "shared drive" of DSLR shots ---- */
+
+.drive {
+  width: min(960px, calc(100% - 48px));
+  margin: 44px auto 72px;
+  background: var(--white);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  text-align: left;
+}
+
+.drive__bar {
   display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  margin-top: auto;
-  padding: 32px 0 0;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  background: var(--cream);
+  border-bottom: var(--border);
+  flex-wrap: wrap;
 }
 
-.filmprint {
-  position: relative;
-  z-index: var(--z, 1);
-  background: #f6f1e4;
-  padding: 11px;
-  box-shadow: 0 22px 38px -18px rgba(23, 26, 43, 0.5);
-  transform: rotate(var(--rot, 0deg)) translateY(var(--y, 0));
-  transition: transform 250ms ease-out;
+.drive__dots {
+  display: flex;
+  gap: 5px;
 }
 
-.filmprint:hover {
-  transform: rotate(0deg) translateY(calc(var(--y, 0px) - 12px));
-  z-index: 6;
+.drive__dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
 }
 
-.filmprint img {
+.drive__dots i:nth-child(1) { background: var(--red-pop); }
+.drive__dots i:nth-child(2) { background: #ffd94a; }
+.drive__dots i:nth-child(3) { background: #9fc49a; }
+
+.drive__crumbs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.drive__crumb--on {
+  font-weight: 700;
+}
+
+.drive__sep {
+  opacity: 0.5;
+}
+
+.drive__meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ink);
+  opacity: 0.6;
+}
+
+.drive__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 18px;
+}
+
+.drivefile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 8px 10px;
+  background: var(--white);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+}
+
+.drivefile:hover {
+  background: var(--sky);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow);
+}
+
+.drivefile__thumb {
   display: block;
-  width: var(--w, 260px);
-  aspect-ratio: var(--ar, 3 / 4);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.drivefile__thumb img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  display: block;
+}
+
+.drivefile__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.drivefile__icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.drivefile__name {
+  font-size: 11.5px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drivefile__sub {
+  font-size: 10px;
+  color: var(--ink);
+  opacity: 0.55;
+  padding-left: 20px;
+}
+
+/* ---- the snap-and-develop modal ---- */
+
+.shotmodal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(23, 26, 43, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  animation: shotmodal-fade 0.18s ease;
+}
+
+@keyframes shotmodal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.shotmodal__polaroid {
+  position: relative;
+  background: #f6f1e4;
+  border: var(--border);
+  padding: 16px 16px 12px;
+  box-shadow: var(--shadow-lg), 0 30px 60px -20px rgba(0, 0, 0, 0.55);
+  transform: rotate(-1.5deg);
+  max-width: min(560px, 92vw);
+}
+
+.shotmodal__flash {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-hand);
+  font-size: 42px;
+  color: var(--blue);
+  animation: shot-flash 0.38s ease forwards;
+}
+
+@keyframes shot-flash {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.shotmodal__photo {
+  border: 2px solid var(--ink);
+  overflow: hidden;
+  background: #2a2e3f;
+}
+
+.shotmodal__photo img {
+  display: block;
+  width: 100%;
+  max-height: 62vh;
+  object-fit: cover;
+  opacity: 0;
+  filter: brightness(2.2) contrast(0.6) saturate(0.2) blur(6px);
+}
+
+/* fresh out of the camera — fades and sharpens in like a developing print */
+.shotmodal__polaroid--developed .shotmodal__photo img {
+  animation: shot-develop 1.6s ease forwards;
+}
+
+@keyframes shot-develop {
+  0% {
+    opacity: 0;
+    filter: brightness(2.2) contrast(0.6) saturate(0.2) blur(6px);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1) contrast(1) saturate(1) blur(0);
+  }
+}
+
+.shotmodal__caption {
+  margin: 10px 2px 2px;
+  font-family: var(--font-hand);
+  font-size: 20px;
+  color: var(--ink);
+  text-align: center;
+  opacity: 0;
+}
+
+.shotmodal__polaroid--developed .shotmodal__caption {
+  animation: shotmodal-fade 0.6s ease 0.9s forwards;
+}
+
+.shotmodal__close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: var(--border);
+  background: var(--orange);
+  color: var(--white);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shotmodal__photo img,
+  .shotmodal__caption {
+    opacity: 1;
+    filter: none;
+    animation: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .drive__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .drive__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .drive__meta {
+    display: none;
+  }
 }
 
 /* ---------------- The Travel Journal (flippable scrapbook) ---------------- */
@@ -1913,6 +2155,49 @@ a {
   transform: rotate(0deg) scale(1.06);
 }
 
+/* live feed: 3 recent posts, bigger tiles, caption slides up on hover */
+.igstrip__post {
+  position: relative;
+  display: block;
+  border-radius: 14px;
+  overflow: hidden;
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 180ms ease-out;
+  box-shadow: 0 12px 22px -14px rgba(23, 26, 43, 0.45);
+}
+
+.igstrip__row--live .igstrip__post img {
+  width: 220px;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.igstrip__post:hover {
+  transform: rotate(0deg) scale(1.05);
+  z-index: 2;
+}
+
+.igstrip__cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20px 10px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--white);
+  background: linear-gradient(transparent, rgba(23, 26, 43, 0.85));
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.igstrip__post:hover .igstrip__cap {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ---------------- Closing CTA + postcard newsletter ---------------- */
 
 .closing__inner {
@@ -2266,6 +2551,10 @@ a {
 
   .igstrip__row img {
     width: 100px;
+  }
+
+  .igstrip__row--live .igstrip__post img {
+    width: 150px;
   }
 
   .mailform__body {
@@ -3171,5 +3460,736 @@ a {
   .lugcase--open .lug-item,
   .lugcase--open .luggage__photo {
     translate: 0 0;
+  }
+}
+
+/* ============ Snappy chatbot ============ */
+
+.chatbot {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.chatbot__fab {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  overflow: visible;
+  border-radius: 50%;
+  border: var(--border);
+  background: var(--orange);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chatbot__fab:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.chatbot__fab--open {
+  background: var(--blue);
+  color: var(--white);
+  font-size: 30px;
+  line-height: 1;
+  font-family: var(--font-body);
+}
+
+.chatbot__fabmascot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.chatbot__fabhint {
+  position: absolute;
+  top: -10px;
+  right: 50px;
+  background: var(--white);
+  border: var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  color: var(--blue);
+  transform: rotate(-8deg);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.chatbot__panel {
+  width: min(360px, calc(100vw - 40px));
+  height: min(520px, calc(100vh - 120px));
+  display: flex;
+  flex-direction: column;
+  background: var(--cream);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: chatbot-pop 0.22s ease;
+}
+
+@keyframes chatbot-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.chatbot__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--blue);
+  color: var(--white);
+  border-bottom: var(--border);
+}
+
+.chatbot__mascot {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+.chatbot__headtext {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.chatbot__headtext strong {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  letter-spacing: 0.02em;
+}
+
+.chatbot__headtext small {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.chatbot__close {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--white);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chatbot__close:hover {
+  background: var(--orange);
+}
+
+.chatbot__log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chatbot__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.chatbot__row--user {
+  justify-content: flex-end;
+}
+
+.chatbot__avatar {
+  width: 26px;
+  height: 26px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+.chatbot__bubble {
+  max-width: 82%;
+  padding: 9px 13px;
+  border: 2px solid var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.chatbot__bubble p {
+  margin: 0;
+}
+
+.chatbot__bubble p + p {
+  margin-top: 4px;
+}
+
+.chatbot__bubble--bot {
+  background: var(--white);
+  border-radius: 14px 14px 14px 4px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.chatbot__bubble--user {
+  background: var(--orange);
+  color: var(--white);
+  border-radius: 14px 14px 4px 14px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.chatbot__bubble--typing {
+  display: flex;
+  gap: 4px;
+  padding: 12px 14px;
+}
+
+.chatbot__bubble--typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.4;
+  animation: chatbot-blink 1s infinite;
+}
+
+.chatbot__bubble--typing span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.chatbot__bubble--typing span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes chatbot-blink {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+.chatbot__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-left: 34px;
+}
+
+.chatbot__chip {
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--sky);
+  color: var(--ink);
+  font-size: 12px;
+  font-family: var(--font-body);
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.chatbot__chip:hover {
+  background: var(--blue);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+
+.chatbot__inputrow {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: var(--border);
+  background: var(--white);
+}
+
+.chatbot__input {
+  flex: 1;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 9px 15px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.chatbot__input:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: var(--white);
+}
+
+.chatbot__send {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: var(--blue);
+  color: var(--white);
+  font-size: 17px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.12s ease;
+}
+
+.chatbot__send:hover {
+  background: var(--orange);
+  transform: rotate(-12deg);
+}
+
+@media (max-width: 640px) {
+  .chatbot {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .chatbot__panel {
+    height: min(480px, calc(100dvh - 100px));
+  }
+}
+
+/* ============ Gears page: clean grid + rental sheet ============ */
+
+.camgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.camcard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 20px 16px;
+  background: var(--white);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.camcard:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.camcard__photo {
+  display: grid;
+  place-items: center;
+  height: 150px;
+  margin-bottom: 8px;
+}
+
+.camcard__photo img {
+  max-height: 140px;
+  max-width: 80%;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.camcard:hover .camcard__photo img {
+  transform: rotate(-4deg) scale(1.06);
+}
+
+.camcard__photo span {
+  font-size: 64px;
+}
+
+.camcard__tag {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.camcard__name {
+  font-family: var(--font-heading);
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.camcard__blurb {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  opacity: 0.75;
+}
+
+.camcard__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+.camcard__price {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.camcard__price small {
+  font-size: 12px;
+  color: var(--ink);
+  opacity: 0.6;
+}
+
+.camcard__cta {
+  font-family: var(--font-hand);
+  font-size: 16px;
+  color: var(--blue);
+}
+
+/* ---- rental sheet modal ---- */
+
+.camsheet {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(23, 26, 43, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  animation: shotmodal-fade 0.18s ease;
+  overflow-y: auto;
+}
+
+.camsheet__card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 24px;
+  width: min(920px, 94vw);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--cream);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 24px;
+  margin: auto;
+}
+
+.camsheet__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: var(--border);
+  background: var(--orange);
+  color: var(--white);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.camsheet__main {
+  position: relative;
+  background: #f6f1e4;
+  border: var(--border);
+  padding: 10px 10px 34px;
+  box-shadow: var(--shadow);
+  transform: rotate(-1deg);
+}
+
+.camsheet__main img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 2px solid var(--ink);
+  animation: shotmodal-fade 0.35s ease;
+}
+
+.camsheet__shotcap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.camsheet__thumbs {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.camsheet__thumb {
+  padding: 0;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  background: none;
+}
+
+.camsheet__thumb img {
+  display: block;
+  width: 72px;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.camsheet__thumb--on,
+.camsheet__thumb:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.camsheet__thumb--on {
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.camsheet__info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.camsheet__tag {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.camsheet__name {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  margin: 0;
+  color: var(--ink);
+}
+
+.camsheet__blurb {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  opacity: 0.8;
+}
+
+.camsheet__pricing {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 10px 0 4px;
+  padding: 10px 14px;
+  background: var(--white);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+}
+
+.camsheet__price {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.camsheet__price small {
+  font-size: 13px;
+  color: var(--ink);
+  opacity: 0.6;
+}
+
+.camsheet__deposit {
+  font-size: 12px;
+  color: var(--ink);
+  opacity: 0.7;
+}
+
+.camsheet__h {
+  margin: 10px 0 2px;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+.camsheet__list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.camsheet__note {
+  margin: 10px 0 0;
+  font-family: var(--font-hand);
+  font-size: 17px;
+  color: var(--blue);
+}
+
+.camsheet__actions {
+  margin-top: 14px;
+}
+
+@media (max-width: 780px) {
+  .camgrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .camsheet__card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .camgrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============ Postcards page: photo postcards from the app ============ */
+
+.mailwall__note {
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: 20px;
+  color: var(--blue);
+  margin: 30px 0;
+}
+
+.ppost {
+  background: #f6f1e4;
+  border: var(--border);
+  padding: 12px 12px 14px;
+  box-shadow: var(--shadow);
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ppost:hover {
+  transform: rotate(0deg) translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  z-index: 2;
+}
+
+.ppost__photo {
+  border: 2px solid var(--ink);
+  overflow: hidden;
+  background: #2a2e3f;
+}
+
+.ppost__photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.ppost__caption {
+  margin: 0 2px;
+  font-family: var(--font-hand);
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.ppost__postmark {
+  margin: 0 2px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.55;
+}
+
+.ppost__camera {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(23, 26, 43, 0.78);
+  color: var(--white);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.ppost__photo {
+  position: relative;
+}
+
+.ppost__sign {
+  display: block;
+  margin-top: 4px;
+  text-align: right;
+  font-size: 17px;
+}
+
+.ppost__postmark {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------------- Mobile nav: brand on top, links wrap below ---------------- */
+
+@media (max-width: 640px) {
+  .nav__inner {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+    padding: 12px 12px 10px;
+  }
+
+  .nav__brand {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav__links {
+    margin: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 16px;
+  }
+
+  .nav__link {
+    font-size: 13.5px;
   }
 }

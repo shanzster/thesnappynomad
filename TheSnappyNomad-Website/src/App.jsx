@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { Nav, Footer, SnapEffect } from './shared.jsx'
+import Chatbot from './chatbot/Chatbot.jsx'
 import Home from './pages/Home.jsx'
 import Gears from './pages/Gears.jsx'
 import Postcards from './pages/Postcards.jsx'
@@ -31,6 +32,7 @@ function App() {
         <Route path="/socials" element={<Socials />} />
       </Routes>
       <Footer />
+      <Chatbot />
     </BrowserRouter>
   )
 }

@@ -10,6 +10,7 @@ import {
   PHOTO_PLACEHOLDERS,
   PHOTO_IMAGES,
 } from '../shared.jsx'
+import { useInstagramFeed } from '../instagram.js'
 
 // Same order as PHOTO_IMAGES so each postcard's stamp matches its photo
 const PLACES = [
@@ -195,47 +196,148 @@ function PostcardsMarquee() {
   )
 }
 
-// Editorial film-cameras spotlight, matched to the FILMCOM reference:
-// blue panel inset on cream, mini serif nav bar, ALL-CAPS cream headline,
-// four overlapping prints of mixed sizes/aspects with blue visible below.
-const FILM_PRINTS = [
-  { src: '/photos/film/film-1.jpg', rot: '-8deg', y: '36px', w: 'clamp(210px, 25vw, 370px)', ar: '3 / 4', z: 1, ml: '0' },
-  { src: '/photos/film/film-2.jpg', rot: '-4deg', y: '58px', w: 'clamp(190px, 23vw, 340px)', ar: '3 / 4', z: 2, ml: 'clamp(-64px, -3.6vw, -36px)' },
-  { src: '/photos/film/film-3.jpg', rot: '2deg', y: '-34px', w: 'clamp(200px, 24vw, 355px)', ar: '4 / 5', z: 4, ml: 'clamp(-68px, -3.8vw, -40px)' },
-  { src: '/photos/film/film-4.jpg', rot: '3deg', y: '20px', w: 'clamp(310px, 37vw, 560px)', ar: '3 / 2', z: 3, ml: 'clamp(-72px, -4vw, -44px)' },
+// DSLR spotlight — our best seller. Styled like a shared drive full of a
+// renter's shots: click a file, the "modal" snaps a shutter flash, then
+// the photo develops in like a fresh polaroid.
+const DSLR_FILES = [
+  { src: '/photos/el-nido.jpg', name: 'el-nido_T6_0231.jpg', size: '4.2 MB', date: 'Mar 14', cap: 'big lagoon, el nido' },
+  { src: '/photos/siargao.jpg', name: 'siargao_T6_0198.jpg', size: '3.8 MB', date: 'Feb 02', cap: 'cloud 9, siargao' },
+  { src: '/photos/batanes.jpg', name: 'batanes_T6_0412.jpg', size: '5.1 MB', date: 'Apr 27', cap: 'rolling hills, batanes' },
+  { src: '/photos/coron.jpg', name: 'coron_T6_0350.jpg', size: '4.6 MB', date: 'Mar 20', cap: 'hidden lagoon, coron' },
+  { src: '/photos/sagada.jpg', name: 'sagada_T6_0087.jpg', size: '3.5 MB', date: 'Jan 18', cap: 'sea of clouds, sagada' },
+  { src: '/photos/bohol.jpg', name: 'bohol_T6_0264.jpg', size: '4.0 MB', date: 'Feb 21', cap: 'chocolate hills, bohol' },
+  { src: '/photos/vigan.jpg', name: 'vigan_T6_0143.jpg', size: '3.9 MB', date: 'Jan 30', cap: 'calle crisologo, vigan' },
+  { src: '/photos/cebu.jpg', name: 'cebu_T6_0309.jpg', size: '4.4 MB', date: 'Mar 03', cap: 'kawasan falls, cebu' },
 ]
 
-function FilmWorld() {
+// Tiny synthesized shutter click — no audio file needed
+function playShutterSound() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext
+    const ctx = new Ctx()
+    const dur = 0.09
+    const buf = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate)
+    const data = buf.getChannelData(0)
+    for (let i = 0; i < data.length; i++) {
+      const t = i / data.length
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3)
+    }
+    const src = ctx.createBufferSource()
+    src.buffer = buf
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'highpass'
+    filter.frequency.value = 1800
+    const gain = ctx.createGain()
+    gain.gain.value = 0.25
+    src.connect(filter)
+    filter.connect(gain)
+    gain.connect(ctx.destination)
+    src.start()
+    src.onended = () => ctx.close()
+  } catch {
+    /* sound is a garnish */
+  }
+}
+
+function DslrWorld() {
+  const [openFile, setOpenFile] = useState(null)
+  // 'snap' (white flash) -> 'develop' (photo fades in)
+  const [stage, setStage] = useState('snap')
+
+  useEffect(() => {
+    if (!openFile) return
+    const onKey = (e) => e.key === 'Escape' && setOpenFile(null)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [openFile])
+
+  const openShot = (file) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStage('develop')
+      setOpenFile(file)
+      return
+    }
+    setStage('snap')
+    setOpenFile(file)
+    playShutterSound()
+    setTimeout(() => setStage('develop'), 380)
+  }
+
   return (
     <section className="filmworld">
       <h2 className="filmworld__title">
         The Unique World
         <br />
-        of Film Cameras
+        of DSLR Cameras
       </h2>
       <p className="filmworld__sub">
-        cameras that give photos
-        <br />
-        a special character and uniqueness
+        our best-selling cam, the Canon EOS Rebel T6 —<br />
+        one renter&apos;s drive, straight off the SD card
       </p>
-      <div className="filmworld__prints" aria-hidden="true">
-        {FILM_PRINTS.map((print, i) => (
-          <div
-            key={i}
-            className="filmprint"
-            style={{
-              '--rot': print.rot,
-              '--y': print.y,
-              '--w': print.w,
-              '--ar': print.ar,
-              '--z': print.z,
-              marginLeft: print.ml,
-            }}
-          >
-            <img src={print.src} alt="" />
-          </div>
-        ))}
+
+      <div className="drive">
+        <header className="drive__bar">
+          <span className="drive__dots" aria-hidden="true">
+            <i /><i /><i />
+          </span>
+          <span className="drive__crumbs">
+            <span className="drive__crumb">📁 My Drive</span>
+            <span className="drive__sep">›</span>
+            <span className="drive__crumb">DSLR — Rebel T6</span>
+            <span className="drive__sep">›</span>
+            <span className="drive__crumb drive__crumb--on">PH trip 🇵🇭</span>
+          </span>
+          <span className="drive__meta">{DSLR_FILES.length} items · shared with The Snappy Nomad</span>
+        </header>
+        <div className="drive__grid">
+          {DSLR_FILES.map((file) => (
+            <button
+              key={file.name}
+              type="button"
+              className="drivefile"
+              onClick={() => openShot(file)}
+            >
+              <span className="drivefile__thumb">
+                <img src={file.src} alt={file.cap} loading="lazy" />
+              </span>
+              <span className="drivefile__row">
+                <span className="drivefile__icon" aria-hidden="true">🖼️</span>
+                <span className="drivefile__name">{file.name}</span>
+              </span>
+              <span className="drivefile__sub">{file.size} · {file.date}</span>
+            </button>
+          ))}
+        </div>
       </div>
+
+      {openFile && (
+        <div
+          className="shotmodal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={openFile.cap}
+          onClick={() => setOpenFile(null)}
+        >
+          <div
+            className={`shotmodal__polaroid ${stage === 'develop' ? 'shotmodal__polaroid--developed' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {stage === 'snap' && <div className="shotmodal__flash" aria-hidden="true">snap!</div>}
+            <div className="shotmodal__photo">
+              <img src={openFile.src} alt={openFile.cap} />
+            </div>
+            <p className="shotmodal__caption">{openFile.cap} · rebel t6</p>
+            <button
+              type="button"
+              className="shotmodal__close"
+              onClick={() => setOpenFile(null)}
+              aria-label="Close photo"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
@@ -591,22 +693,41 @@ function AppTeaser() {
   )
 }
 
-/* ---- Instagram strip ---- */
+/* ---- Instagram strip: the 3 most recent real posts ---- */
 
 function IgStrip() {
+  // Real posts only — the 3 most recent from @thesnappynomad, nothing canned
+  const { posts } = useInstagramFeed(3)
+
   return (
     <section className="band band--white igstrip">
       <div className="container">
-        <div className="igstrip__row" aria-hidden="true">
-          {PHOTO_IMAGES.slice(0, 6).map((photo, i) => (
-            <img
-              key={photo.src}
-              src={photo.src}
-              alt=""
-              style={{ '--rot': `${(i % 2 ? 1 : -1) * (1 + (i % 3))}deg` }}
-            />
-          ))}
-        </div>
+        {posts && posts.length > 0 && (
+          <div className="igstrip__row igstrip__row--live">
+            {posts.map((post, i) => (
+              <a
+                key={post.id}
+                href={post.permalink}
+                target="_blank"
+                rel="noreferrer"
+                className="igstrip__post"
+                style={{ '--rot': `${(i % 2 ? 1 : -1) * (1 + (i % 3))}deg` }}
+                aria-label={post.caption ? post.caption.slice(0, 80) : 'Instagram post'}
+              >
+                <img
+                  src={post.media_type === 'VIDEO' ? post.thumbnail_url : post.media_url}
+                  alt=""
+                  loading="lazy"
+                />
+                {post.caption && (
+                  <span className="igstrip__cap">
+                    {post.caption.length > 60 ? post.caption.slice(0, 60) + '…' : post.caption}
+                  </span>
+                )}
+              </a>
+            ))}
+          </div>
+        )}
         <p className="band__more">
           <a
             href="https://instagram.com/thesnappynomad"
@@ -622,12 +743,9 @@ function IgStrip() {
   )
 }
 
-/* ---- Closing CTA + postcard newsletter ---- */
+/* ---- Closing CTA ---- */
 
 function ClosingCta() {
-  const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
-
   return (
     <section className="band band--cream closing">
       <div className="container closing__inner">
@@ -640,45 +758,6 @@ function ClosingCta() {
         <Link to="/gears" className="btn btn--primary closing__btn">
           Browse the gear
         </Link>
-
-        <form
-          className="mailform"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (email) setSent(true)
-          }}
-        >
-          <header className="mailform__head">
-            <span className="mailform__title">Post Card</span>
-            <span className="mailform__sub">film deals · new cams · no spam</span>
-          </header>
-          <div className="mailform__body">
-            <p className="mailform__msg">
-              Send me film deals, new cams, and the occasional mascot selfie. ✈
-            </p>
-            <div className="mailform__divider" aria-hidden="true" />
-            <div className="mailform__addr">
-              {sent ? (
-                <p className="mailform__done">stamped! check your inbox ✦</p>
-              ) : (
-                <>
-                  <input
-                    type="email"
-                    required
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    aria-label="Email address"
-                  />
-                  <button type="submit" className="mailform__stamp">
-                    SEND
-                    <small>✈ PHL</small>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </form>
       </div>
     </section>
   )
@@ -690,7 +769,7 @@ export default function Home() {
       <Hero />
       <div className="divider" />
       <Gear />
-      <FilmWorld />
+      <DslrWorld />
       <div className="divider divider--tilt" />
       <PostcardsMarquee />
       <Journal />

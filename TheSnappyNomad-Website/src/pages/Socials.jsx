@@ -1,58 +1,12 @@
-import { useEffect, useState } from 'react'
 import { PHOTO_PLACEHOLDERS } from '../shared.jsx'
-
-// ── Instagram ────────────────────────────────────────────────────────────
-const IG_ACCESS_TOKEN = 'IGAAaNNuM1IHRBZAGI2VEN5aFMyUnNLU3EzVmtkLVd5QkZAaX0NsUlNNWFU1YjVjdEZAIN2dzRjlvR0cwNFJreHFYUjBJMjc3SjJMTy1sRG82U2tOd0V4ZA1loUHJIWUI0VE8tanJ0cUpnTjlMbFdBR3BLNG84aW5EeTktUlNJYUZATZAwZDZD'
-const IG_USERNAME = 'thesnappynomad'
+import { IG_ACCESS_TOKEN, IG_USERNAME, useInstagramFeed } from '../instagram.js'
 
 const SOCIALS = [
   { name: 'Facebook', handle: 'The Snappy Nomad', href: 'https://facebook.com/thesnappynomad', emoji: '👥' },
 ]
 
 function InstagramFeed() {
-  const [posts, setPosts] = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    if (!IG_ACCESS_TOKEN) return
-    
-    // Fetch profile info
-    fetch(
-      `https://graph.instagram.com/me?fields=id,username,profile_picture_url&access_token=${IG_ACCESS_TOKEN}`
-    )
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) {
-          console.error('Instagram Profile Error:', d.error)
-        } else {
-          setProfile(d)
-        }
-      })
-      .catch((err) => {
-        console.error('Profile Fetch Error:', err)
-      })
-
-    // Fetch posts
-    fetch(
-      `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=12&access_token=${IG_ACCESS_TOKEN}`
-    )
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) {
-          console.error('Instagram API Error:', d.error)
-          setError(d.error.message)
-          setPosts([])
-        } else {
-          setPosts(d.data || [])
-        }
-      })
-      .catch((err) => {
-        console.error('Fetch Error:', err)
-        setError(err.message)
-        setPosts([])
-      })
-  }, [])
+  const { posts, profile, error } = useInstagramFeed(12)
 
   if (error) {
     return <p className="igfeed__note">Could not load Instagram feed: {error}</p>
