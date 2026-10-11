@@ -9,8 +9,10 @@ import {
   GearLuggage,
   PHOTO_PLACEHOLDERS,
   PHOTO_IMAGES,
+  playShutterSound,
 } from '../shared.jsx'
 import { useInstagramFeed } from '../instagram.js'
+import { useDialogA11y } from '../a11y.js'
 
 // Same order as PHOTO_IMAGES so each postcard's stamp matches its photo
 const PLACES = [
@@ -52,7 +54,24 @@ function useArcMarquee(trackRef) {
     wrap.addEventListener('mouseenter', onEnter)
     wrap.addEventListener('mouseleave', onLeave)
 
+    // Only animate while the marquee is actually on screen — the per-frame
+    // getBoundingClientRect pass is too expensive to run against a section
+    // the user can't see.
+    let visible = false
+    const io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      if (visible && !raf) {
+        last = performance.now()
+        raf = requestAnimationFrame(step)
+      }
+    }, { rootMargin: '120px' })
+    io.observe(wrap)
+
     const step = (now) => {
+      if (!visible) {
+        raf = 0
+        return
+      }
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
       const half = track.scrollWidth / 2
@@ -72,10 +91,10 @@ function useArcMarquee(trackRef) {
       }
       raf = requestAnimationFrame(step)
     }
-    raf = requestAnimationFrame(step)
 
     return () => {
-      cancelAnimationFrame(raf)
+      if (raf) cancelAnimationFrame(raf)
+      io.disconnect()
       wrap.removeEventListener('mouseenter', onEnter)
       wrap.removeEventListener('mouseleave', onLeave)
     }
@@ -83,14 +102,46 @@ function useArcMarquee(trackRef) {
 }
 
 function Hero() {
-  const step = useTick(200)
+  // A relaxed beat — fast enough to feel like a flipbook, slow enough to
+  // actually see each photo (and well clear of flash thresholds).
+  const step = useTick(1200)
+  const videoRef = useRef(null)
+  const [videoPaused, setVideoPaused] = useState(false)
+  const [reduceMotion] = useState(
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+
+  const toggleVideo = () => {
+    const video = videoRef.current
+    if (!video) return
+    if (video.paused) {
+      video.play()
+      setVideoPaused(false)
+    } else {
+      video.pause()
+      setVideoPaused(true)
+    }
+  }
+
   return (
     <header className="hero" id="top">
       <div className="hero__video-fallback" aria-hidden="true" />
-      <video className="hero__video" autoPlay muted loop playsInline>
-        <source src="/videos/hero-bg.mp4" type="video/mp4" />
-      </video>
+      {!reduceMotion && (
+        <video ref={videoRef} className="hero__video" autoPlay muted loop playsInline>
+          <source src="/videos/hero-bg.mp4" type="video/mp4" />
+        </video>
+      )}
       <div className="hero__overlay" aria-hidden="true" />
+      {!reduceMotion && (
+        <button
+          type="button"
+          className="hero__videotoggle"
+          onClick={toggleVideo}
+          aria-label={videoPaused ? 'Play background video' : 'Pause background video'}
+        >
+          {videoPaused ? '▶' : '❚❚'}
+        </button>
+      )}
 
       <div className="container hero__inner">
         <div className="hero__stage">
@@ -118,10 +169,11 @@ function Hero() {
         </div>
 
         <div className="hero__copy">
-          <h1 className="hero__sub">
+          <h1 className="hero__title">Snap · Pose · Wander</h1>
+          <p className="hero__sub">
             Rent the perfect travel camera — film, digicam, action, or DSLR —
             packed, charged, and ready for your next adventure.
-          </h1>
+          </p>
           <div className="hero__actions">
             <Link to="/gears" className="btn btn--primary">Browse the gear</Link>
             <a href="#how" className="btn btn--secondary">How it works</a>
@@ -148,6 +200,57 @@ function Gear() {
         <p className="band__more">
           <Link to="/gears" className="btn btn--secondary">See every cam →</Link>
         </p>
+      </div>
+    </section>
+  )
+}
+
+/* ---- How it works: four stops on the route ---- */
+
+const HOW_STEPS = [
+  {
+    emoji: '🗓️',
+    title: 'Pick your dates',
+    copy: 'Choose a cam and DM us on Instagram or Facebook to reserve it.',
+  },
+  {
+    emoji: '🎒',
+    title: 'Grab the kit',
+    copy: 'Pick up at the Manila kiosk, or same-day courier within Metro Manila.',
+  },
+  {
+    emoji: '📸',
+    title: 'Shoot your trip',
+    copy: 'Batteries, cards, and film included. Extensions are one message away.',
+  },
+  {
+    emoji: '🎞️',
+    title: 'Send it home',
+    copy: 'Return label in the case. Film comes back as high-res scans in 48 hours.',
+  },
+]
+
+function HowItWorks() {
+  return (
+    <section className="band band--white" id="how">
+      <div className="container">
+        <div className="band__head">
+          <span className="eyebrow eyebrow--blue">The route</span>
+          <h2 className="band__title">How it works</h2>
+          <p className="band__blurb">
+            Four stops between you and a camera on your shoulder.
+          </p>
+        </div>
+        <ol className="how">
+          {HOW_STEPS.map((step, i) => (
+            <li key={step.title} className="howstep">
+              <span className="howstep__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span className="howstep__emoji" aria-hidden="true">{step.emoji}</span>
+              <h3 className="howstep__title">{step.title}</h3>
+              <p className="howstep__copy">{step.copy}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   )
@@ -210,46 +313,45 @@ const DSLR_FILES = [
   { src: '/photos/cebu.jpg', name: 'cebu_T6_0309.jpg', size: '4.4 MB', date: 'Mar 03', cap: 'kawasan falls, cebu' },
 ]
 
-// Tiny synthesized shutter click — no audio file needed
-function playShutterSound() {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext
-    const ctx = new Ctx()
-    const dur = 0.09
-    const buf = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate)
-    const data = buf.getChannelData(0)
-    for (let i = 0; i < data.length; i++) {
-      const t = i / data.length
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3)
-    }
-    const src = ctx.createBufferSource()
-    src.buffer = buf
-    const filter = ctx.createBiquadFilter()
-    filter.type = 'highpass'
-    filter.frequency.value = 1800
-    const gain = ctx.createGain()
-    gain.gain.value = 0.25
-    src.connect(filter)
-    filter.connect(gain)
-    gain.connect(ctx.destination)
-    src.start()
-    src.onended = () => ctx.close()
-  } catch {
-    /* sound is a garnish */
-  }
+function ShotModal({ file, stage, onClose }) {
+  const cardRef = useRef(null)
+  useDialogA11y(cardRef, onClose)
+
+  return (
+    <div
+      className="shotmodal"
+      role="dialog"
+      aria-modal="true"
+      aria-label={file.cap}
+      onClick={onClose}
+    >
+      <div
+        ref={cardRef}
+        className={`shotmodal__polaroid ${stage === 'develop' ? 'shotmodal__polaroid--developed' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {stage === 'snap' && <div className="shotmodal__flash" aria-hidden="true">snap!</div>}
+        <div className="shotmodal__photo">
+          <img src={file.src} alt={file.cap} />
+        </div>
+        <p className="shotmodal__caption">{file.cap} · rebel t6</p>
+        <button
+          type="button"
+          className="shotmodal__close"
+          onClick={onClose}
+          aria-label="Close photo"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function DslrWorld() {
   const [openFile, setOpenFile] = useState(null)
   // 'snap' (white flash) -> 'develop' (photo fades in)
   const [stage, setStage] = useState('snap')
-
-  useEffect(() => {
-    if (!openFile) return
-    const onKey = (e) => e.key === 'Escape' && setOpenFile(null)
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [openFile])
 
   const openShot = (file) => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -311,32 +413,7 @@ function DslrWorld() {
       </div>
 
       {openFile && (
-        <div
-          className="shotmodal"
-          role="dialog"
-          aria-modal="true"
-          aria-label={openFile.cap}
-          onClick={() => setOpenFile(null)}
-        >
-          <div
-            className={`shotmodal__polaroid ${stage === 'develop' ? 'shotmodal__polaroid--developed' : ''}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {stage === 'snap' && <div className="shotmodal__flash" aria-hidden="true">snap!</div>}
-            <div className="shotmodal__photo">
-              <img src={openFile.src} alt={openFile.cap} />
-            </div>
-            <p className="shotmodal__caption">{openFile.cap} · rebel t6</p>
-            <button
-              type="button"
-              className="shotmodal__close"
-              onClick={() => setOpenFile(null)}
-              aria-label="Close photo"
-            >
-              ×
-            </button>
-          </div>
-        </div>
+        <ShotModal file={openFile} stage={stage} onClose={() => setOpenFile(null)} />
       )}
     </section>
   )
@@ -422,7 +499,7 @@ function Journal() {
                     className="jphoto"
                     style={{ left: item.x, top: item.y, width: item.w, '--rot': item.rot, '--tape': item.tape }}
                   >
-                    <img src={item.src} alt="" />
+                    <img src={item.src} alt="" loading="lazy" />
                     <figcaption>{item.cap}</figcaption>
                   </figure>
                 )
@@ -539,7 +616,7 @@ function TripKits() {
           {KITS.map((kit) => (
             <article key={kit.name} className="kitcard" style={{ '--rot': kit.rot }}>
               {kit.img ? (
-                <img src={kit.img} alt="" className="kitcard__tote-img" />
+                <img src={kit.img} alt="" className="kitcard__tote-img" loading="lazy" />
               ) : (
                 <div className="kitcard__tote" aria-hidden="true">
                   <span className="kitcard__tote-emoji">{kit.emoji}</span>
@@ -560,9 +637,14 @@ function TripKits() {
                 </strong>
                 <span className="kitcard__save">save ₱{kit.save}</span>
               </div>
-              <button type="button" className="btn btn--primary kitcard__btn">
-                Book kit
-              </button>
+              <a
+                href="https://instagram.com/thesnappynomad"
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn--primary kitcard__btn"
+              >
+                Book this kit · DM us
+              </a>
             </article>
           ))}
         </div>
@@ -769,6 +851,7 @@ export default function Home() {
       <Hero />
       <div className="divider" />
       <Gear />
+      <HowItWorks />
       <DslrWorld />
       <div className="divider divider--tilt" />
       <PostcardsMarquee />

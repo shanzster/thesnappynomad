@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import { CamSheet } from './camsheet.jsx'
 
 /* ============ Mascot ============ */
 
@@ -250,16 +251,38 @@ function playZipSound() {
   }
 }
 
+// Tiny synthesized shutter click — no audio file needed
+export function playShutterSound() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext
+    const ctx = new Ctx()
+    const dur = 0.09
+    const buf = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate)
+    const data = buf.getChannelData(0)
+    for (let i = 0; i < data.length; i++) {
+      const t = i / data.length
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3)
+    }
+    const src = ctx.createBufferSource()
+    src.buffer = buf
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'highpass'
+    filter.frequency.value = 1800
+    const gain = ctx.createGain()
+    gain.gain.value = 0.25
+    src.connect(filter)
+    filter.connect(gain)
+    gain.connect(ctx.destination)
+    src.start()
+    src.onended = () => ctx.close()
+  } catch {
+    /* sound is a garnish */
+  }
+}
+
 export function GearLuggage() {
   const [phase, setPhase] = useState('closed')
   const [selected, setSelected] = useState(null)
-
-  useEffect(() => {
-    if (!selected) return
-    const onKey = (e) => e.key === 'Escape' && setSelected(null)
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [selected])
 
   const openUp = () => {
     if (phase !== 'closed') return
@@ -353,45 +376,7 @@ export function GearLuggage() {
         </div>
       </div>
 
-      {selected && (
-        <div
-          className="camdetail"
-          role="dialog"
-          aria-modal="true"
-          aria-label={selected.name}
-          onClick={() => setSelected(null)}
-        >
-          <div className="camdetail__card" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="camdetail__close"
-              onClick={() => setSelected(null)}
-              aria-label="Close"
-            >
-              ×
-            </button>
-            {selected.img ? (
-              <img src={selected.img} alt="" className="camdetail__photo" />
-            ) : (
-              <span className="camdetail__emoji" aria-hidden="true">
-                {selected.emoji}
-              </span>
-            )}
-            <span className="camdetail__tag">{selected.tag}</span>
-            <h3 className="camdetail__name">{selected.name}</h3>
-            <p className="camdetail__blurb">{selected.blurb}</p>
-            <div className="camdetail__foot">
-              <span className="camdetail__price">
-                ₱{selected.price}
-                <small>/day</small>
-              </span>
-              <button type="button" className="btn btn--primary">
-                Rent this cam
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {selected && <CamSheet cam={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }
@@ -400,6 +385,7 @@ export function GearLuggage() {
 
 const PAGES = [
   { to: '/gears', label: 'Gears' },
+  { to: '/test-cams', label: 'Test Cams' },
   { to: '/postcards', label: 'Postcards' },
   { to: '/app', label: 'The App' },
   { to: '/about', label: 'About' },

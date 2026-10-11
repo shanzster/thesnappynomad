@@ -9,7 +9,15 @@ function InstagramFeed() {
   const { posts, profile, error } = useInstagramFeed(12)
 
   if (error) {
-    return <p className="igfeed__note">Could not load Instagram feed: {error}</p>
+    return (
+      <p className="igfeed__note">
+        The feed is having a moment — catch the latest directly on{' '}
+        <a href={`https://instagram.com/${IG_USERNAME}`} target="_blank" rel="noreferrer">
+          @{IG_USERNAME}
+        </a>
+        . 📡
+      </p>
+    )
   }
 
   if (IG_ACCESS_TOKEN && posts === null) {
@@ -85,8 +93,11 @@ function InstagramFeed() {
         ))}
       </div>
       <p className="igfeed__note">
-        This grid goes live once an Instagram access token is added in{' '}
-        <code>src/pages/Socials.jsx</code>.
+        Fresh posts land here soon — in the meantime, the whole feed lives on{' '}
+        <a href={`https://instagram.com/${IG_USERNAME}`} target="_blank" rel="noreferrer">
+          @{IG_USERNAME}
+        </a>
+        . 📸
       </p>
     </>
   )

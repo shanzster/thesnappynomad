@@ -1,5 +1,43 @@
 import { Mascot } from '../shared.jsx'
 
+// The film round trip, from shutter press to scans in the app
+const PIPELINE = [
+  {
+    emoji: '🎞️',
+    title: 'Shoot the roll',
+    copy: 'Film, digicam, or DSLR — fill the card, finish the roll. No rationing shots.',
+  },
+  {
+    emoji: '📦',
+    title: 'Send the cam home',
+    copy: "Return label's already in the case. Metro Manila courier picks up same-day.",
+  },
+  {
+    emoji: '🧪',
+    title: 'We develop + scan',
+    copy: 'Every roll developed, scanned, and backed up in-house within 48 hours.',
+  },
+  {
+    emoji: '📲',
+    title: 'Scans hit your app',
+    copy: 'Polaroid-framed, pinned to your snap map, ready to share (or gatekeep).',
+  },
+]
+
+// Passport stamps you earn by shooting a destination — a few are locked
+// on purpose; that's the whole fun
+const STAMPS = [
+  { place: 'MNL', small: '✈ arrived', cls: 'stamp--circle' },
+  { place: 'EL NIDO', small: 'palawan', cls: 'stamp--rect' },
+  { place: 'SIARGAO', small: 'surf check', cls: 'stamp--oval' },
+  { place: 'CEBU', small: 'kawasan', cls: 'stamp--rect stamp--blue' },
+  { place: 'BOHOL', small: 'chocolate hills', cls: 'stamp--circle stamp--blue' },
+  { place: 'SAGADA', small: 'sea of clouds', cls: 'stamp--oval stamp--red' },
+  { place: 'BATANES', small: 'locked · go north', cls: 'stamp--circle', locked: true },
+  { place: 'CORON', small: 'locked · dive it', cls: 'stamp--rect', locked: true },
+  { place: 'DAVAO', small: 'locked · durian dare', cls: 'stamp--oval', locked: true },
+]
+
 const FEATURES = [
   {
     emoji: '🗓️',
@@ -37,14 +75,14 @@ export default function TheApp() {
               the edges.
             </p>
             <div className="apphero__stores">
-              <a href="#" className="storebadge" onClick={(e) => e.preventDefault()}>
+              <div className="storebadge storebadge--soon">
                 <small>Soon on the</small>
                 <span> App Store</span>
-              </a>
-              <a href="#" className="storebadge" onClick={(e) => e.preventDefault()}>
+              </div>
+              <div className="storebadge storebadge--soon">
                 <small>Soon on</small>
                 <span>▶ Google Play</span>
-              </a>
+              </div>
             </div>
           </div>
 
@@ -92,6 +130,73 @@ export default function TheApp() {
               </article>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="band band--cream">
+        <div className="container">
+          <div className="band__head">
+            <span className="eyebrow">The film round trip</span>
+            <h2 className="band__title">From shutter to scan</h2>
+            <p className="band__blurb">
+              Your shots never sit in a lab queue wondering where home is.
+            </p>
+          </div>
+          <ol className="how">
+            {PIPELINE.map((step, i) => (
+              <li key={step.title} className="howstep">
+                <span className="howstep__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <span className="howstep__emoji" aria-hidden="true">{step.emoji}</span>
+                <h3 className="howstep__title">{step.title}</h3>
+                <p className="howstep__copy">{step.copy}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="band band--white">
+        <div className="container">
+          <div className="band__head">
+            <span className="eyebrow eyebrow--blue">Collect the map</span>
+            <h2 className="band__title">The stamp collection</h2>
+            <p className="band__blurb">
+              Shoot a destination, earn its stamp. Some you'll have to go get.
+            </p>
+          </div>
+          <div className="stampwall">
+            {STAMPS.map((s) => (
+              <div
+                key={s.place}
+                className={`stamp ${s.cls}${s.locked ? ' stamp--locked' : ''}`}
+              >
+                {s.place}
+                <small>{s.small}</small>
+              </div>
+            ))}
+          </div>
+          <p className="stampwall__note">
+            6 of 10 collected — the batanes stamp is the flex ✈
+          </p>
+        </div>
+      </section>
+
+      <section className="band appwaitlist">
+        <div className="container appwaitlist__inner">
+          <Mascot className="appwaitlist__mascot" />
+          <h2 className="band__title appwaitlist__title">Be first through the gate</h2>
+          <p className="band__blurb appwaitlist__blurb">
+            The app is boarding soon. DM us "APP" and we'll save you a seat —
+            early nomads get their first stamp free.
+          </p>
+          <a
+            href="https://instagram.com/thesnappynomad"
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn--secondary"
+          >
+            DM @thesnappynomad ↗
+          </a>
         </div>
       </section>
     </main>

@@ -22,6 +22,13 @@ export default function Chatbot() {
     if (open) inputRef.current?.focus()
   }, [open])
 
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   const send = (raw) => {
     const text = raw.trim()
     if (!text || typing) return
@@ -74,7 +81,7 @@ export default function Chatbot() {
             </button>
           </header>
 
-          <div className="chatbot__log" ref={logRef}>
+          <div className="chatbot__log" ref={logRef} aria-live="polite">
             {messages.map((m) => (
               <div key={m.id} className={`chatbot__row chatbot__row--${m.from}`}>
                 {m.from === 'bot' && <img src="/images/chatbot-icon.jpeg" alt="" className="chatbot__avatar" />}
